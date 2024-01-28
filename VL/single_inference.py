@@ -23,13 +23,15 @@ def disable_torch_init():
     setattr(torch.nn.Linear, "reset_parameters", lambda self: None)
     setattr(torch.nn.LayerNorm, "reset_parameters", lambda self: None)
 
-
-def single_infer(args):
+def load_model(args):
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     key_info["model_path"] = model_path
     get_model_name_from_path(model_path)
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path)
+    return tokenizer, model, image_processor, context_len
+
+def single_infer(args, tokenizer, model, image_processor, context_len):
 
     image_file = args.image_file
     qs = args.question
@@ -106,5 +108,8 @@ if __name__ == "__main__":
     parser.add_argument("--top_p", type=float, default=None)
     parser.add_argument("--num_beams", type=int, default=1)
     args = parser.parse_args()
-
-    single_infer(args)
+    tokenizer, model, image_processor, context_len = load_model(args)
+    while(True):
+        args.image_file = input("Enter your image file: ")
+        args.question = input("Enter your question: ")
+        single_infer(args, tokenizer, model, image_processor, context_len)
